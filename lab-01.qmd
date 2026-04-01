@@ -64,7 +64,7 @@ author:
 Install and load the following packages. If any are missing, run `install.packages("packagename")` first:
 
 ```{r}
-#| eval: false
+
 if (!requireNamespace("pacman", quietly = TRUE)) install.packages("pacman")
 
 pacman::p_load(
@@ -625,14 +625,6 @@ Make `season` a factor with levels in hydrological order: Snowmelt, Monsoon, Low
 ::: callout-tip
 Hint: extract `month` from `Date` with `lubridate::month()`, create `season` with `case_when()` mapping month ranges to labels, then convert to a factor with explicit level ordering:
 
-```{r}
-#| eval: false
-data |> mutate(
-  month = month(Date),
-  season = case_when(...),
-  season = factor(season, levels = c('Snowmelt', 'Monsoon', 'Low-flow', 'Winter'))
-)
-```
 :::
 
 ```{r}
@@ -708,7 +700,7 @@ This is your fourth join. **Always verify**: the final dataset should have \~44 
 :::
 
 ```{r}
-annual_summary <- 
+ 
   
 lees_model <- annual_summary |> 
   filter(site_no == "09380000") |>
@@ -742,11 +734,6 @@ lees_glenwood_dominant_season <- lees_glenwood_dominant_season |>
 
 **b.** Fit a linear model predicting `log_lees` from `log_glenwood`, `season`, and their interaction, If you haven't seen linear modeling in R, we will cover it in more detail latter in this course, but, the syntax is straightforward: `lm(response ~ predictor1 * predictor2, data = mydata)` fits a model with main effects and an interaction term. The interaction (`*`) allows the relationship between Glenwood and Lees to differ by season while a model without interaction (`lm(log_lees ~ log_glenwood + season)`) would assume the same Glenwood-Lees relationship in every season.
 
-```{r}
-#| eval: false
-mod <- lm(log_lees ~ log_glenwood * season, data = lees_model_data)
-summary(mod)
-```
 
 ```{r}
 mod <- lm(log_lees ~ log_glenwood * season, data = lees_glenwood_dominant_season)
@@ -770,8 +757,7 @@ A model that fits well on average can still fail in predictable ways. Two core a
 **a.** Use `broom::augment()` to produce a tidy data frame of predictions and residuals alongside the original data:
 
 ```{r}
-#| eval: false
-aug <- augment(mod, data = lees_model_data)
+#aug <- augment(mod, data = lees_model_data)
 ```
 
 ::: callout-tip
