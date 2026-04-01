@@ -29,7 +29,6 @@ knitr::opts_chunk$set(
 #| echo: false
 #| fig-align: center
 #| out-width: "100%"
-knitr::include_graphics('img/colorado-river.jpg')
 ```
 
 In January 2023, the federal government announced the first-ever Tier 3 shortage on the Colorado River — triggering mandatory cuts to Arizona, Nevada, and Mexico. Those cuts were calculated from streamflow records like the ones you are about to pull.
@@ -75,7 +74,8 @@ pacman::p_load(
   patchwork,
   flextable,
   lubridate,
-  broom
+  broom,
+  tribble
 )
 ```
 
@@ -680,7 +680,7 @@ ggplot(lees_ferry_peak, aes(x = water_year, y = peak_day)) +
 
 **d.** In 2–3 sentences: (1) describe the direction and magnitude of the peak timing trend, (2) is it statistically visible or buried in noise? (3) What would a two-week earlier peak timing mean operationally for reservoir managers trying to capture spring runoff before it passes downstream?
 
-> ...
+> ...The trend of the peak flow timing at Lees Ferry is moving up, signifying a later date in the year for peak flows from 1980 to present. It is buried in the noise of the plot, peak flow date doesn't show a clear trendbut is scattered. Operationally, this trend makes it difficult for reservoir managers to capture high flows at any time in the year, a two-week difference in timing at a single location could mean that managers would lack foresight ultimately leading to reservoirs lacking the full water supply necessary to make it through the dry season.  
 
 ------------------------------------------------------------------------
 
@@ -708,7 +708,34 @@ This is your fourth join. **Always verify**: the final dataset should have \~44 
 :::
 
 ```{r}
+annual_summary <- 
+  
+lees_model <- annual_summary |> 
+  filter(site_no == "09380000") |>
+  rename(lees_flow = total_annual_discharge)
 
+glen_springs <- annual_summary |> 
+  filter(site_no == "09085000") |>
+    rename(glenwood_flow = total_annual_discharge)
+
+lees_glen <- left_join(lees_model, glen_springs, by = "water_year")
+#Check this
+nrow(lees_glen) == nrow(lees_model)
+sum(is.na(lees_glen$glenwood_flow)) == 0
+
+dominant_season <- seasonal_summary |>
+  filter(site_no == "09380000") |>
+  group_by(water_year) |> 
+  slice_max(total_seasonal_discharge, n = 1, with_ties = FALSE) |>
+  ungroup()
+
+lees_glenwood_dominant_season <- left_join(lees_glen, dominant_season, by = "water_year")
+
+nrow(lees_glenwood_dominant_season) == nrow(lees_glen)
+sum(is.na(lees_glenwood_dominant_season$season)) == 0
+
+lees_glenwood_dominant_season <- lees_glenwood_dominant_season |>
+  mutate(log_lees = log(lees_flow), log_glenwood = log(glenwood_flow))
 ```
 
 ## Model Building
@@ -722,7 +749,8 @@ summary(mod)
 ```
 
 ```{r}
-
+mod <- lm(log_lees ~ log_glenwood * season, data = lees_glenwood_dominant_season)
+summary(mod)
 ```
 
 **c.** In 3–4 sentences: (1) report the R² and state whether the overall model is statistically significant, (2) interpret the `log_glenwood` coefficient as an elasticity — what does it mean physically that the coefficient is greater than 1? (3) describe what the significant negative interaction terms tell you about the upstream-downstream relationship outside of Snowmelt season.
