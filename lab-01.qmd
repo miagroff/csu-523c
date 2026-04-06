@@ -25,12 +25,6 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r}
-#| echo: false
-#| fig-align: center
-#| out-width: "100%"
-```
-
 In January 2023, the federal government announced the first-ever Tier 3 shortage on the Colorado River — triggering mandatory cuts to Arizona, Nevada, and Mexico. Those cuts were calculated from streamflow records like the ones you are about to pull.
 
 The Colorado River Basin supplies drinking water to 40 million people across 7 US states, irrigates 5 million acres of farmland, and is governed by one of the oldest and most contested water rights agreements in American history — the Colorado River Compact of 1922. Understanding how streamflow varies across this system is not an academic exercise. It is the daily work of water managers, federal agencies, tribal water rights holders, and scientists navigating a river under compounding stress from drought, overallocation, and climate change.
@@ -40,28 +34,6 @@ In this lab you will work with real streamflow records pulled directly from the 
 ------------------------------------------------------------------------
 
 # Set-up {#setup}
-
-## Repository
-
-1.  Create a new repository called `csu-523c` on GitHub
-2.  Clone it to your `~/github/` directory
-3.  Open the project in RStudio (`File → Open Project`)
-4.  Download this labs qmd file [here](lab-01.qmd) into your repo
-5.  Add your information to the yaml
-
-``` yaml
----
-...
-author:
-  - name: Your Name
-    email: your@colostate.edu
-...
----
-```
-
-## Libraries
-
-Install and load the following packages. If any are missing, run `install.packages("packagename")` first:
 
 ```{r}
 
@@ -78,10 +50,6 @@ pacman::p_load(
   tribble
 )
 ```
-
-::: callout-note
-`pacman::p_load()` installs any missing packages and loads them in one step — convenient for students setting up dependencies.
-:::
 
 ## Data
 
@@ -700,8 +668,6 @@ This is your fourth join. **Always verify**: the final dataset should have \~44 
 :::
 
 ```{r}
- 
-  
 lees_model <- annual_summary |> 
   filter(site_no == "09380000") |>
   rename(lees_flow = total_annual_discharge)
@@ -746,7 +712,7 @@ summary(mod)
 In a log-log model, the coefficient on `log_glenwood` is an **elasticity**: a coefficient of 1.8 means a 1% increase in Glenwood Springs flow is associated with a 1.8% increase at Lees Ferry. This super-linear amplification makes physical sense — flow accumulates from tributaries between the two gauges, so an above-average headwater year compounds as it moves downstream.
 :::
 
-> ...
+> ...The linear model has an R squared value of 0.7261 meaning that about 73 percent of the changes in flow at Lees Ferry can be predicted from the flow at the Glenwood site. The p-value of < 2.2e-16 indicates a statistically significant relationship. The log_glenwood coefficient is 1.7966 meaning that an increase of 1 percent at the Glenwood site would cause an increase of 1.8 at the other site. The interaction reverses in the other seasons, the monsoon, low-flow and winter indicated with the negative interaction between ustream and downstream sites. 
 
 ------------------------------------------------------------------------
 
@@ -773,7 +739,7 @@ Together these make model results as pipeable as any other data frame — straig
 :::
 
 ```{r}
-
+aug <- augment(mod, data = lees_glenwood_dominant_season)
 ```
 
 **b.** Create a **predicted vs. actual scatter plot**. Add a dashed 1:1 reference line (perfect prediction). Color points by `season`. Identify any point that sits noticeably off the line.
@@ -783,7 +749,13 @@ Together these make model results as pipeable as any other data frame — straig
 :::
 
 ```{r}
-
+ggplot(aug, aes(x = .fitted, y = log_lees, color = season)) +
+  geom_point() +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
+  labs(title = "",
+       x = "Predicted Flow",
+       y = "Actual Flow",
+       color = "Season")
 ```
 
 **c.** Plot a **histogram of the residuals** with a vertical dashed line at zero.
