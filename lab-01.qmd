@@ -668,17 +668,21 @@ This is your fourth join. **Always verify**: the final dataset should have \~44 
 :::
 
 ```{r}
-lees_model <- annual_summary |> 
+lees_annual <- annual_summary |> 
   filter(site_no == "09380000") |>
+  filter(water_year < 2024) |>
   rename(lees_flow = total_annual_discharge)
 
-glen_springs <- annual_summary |> 
+glen_annual <- annual_summary |> 
   filter(site_no == "09085000") |>
+    filter(water_year < 2024) |>
     rename(glenwood_flow = total_annual_discharge)
 
-lees_glen <- left_join(lees_model, glen_springs, by = "water_year")
-#Check this
-nrow(lees_glen) == nrow(lees_model)
+lees_glen <- lees_annual |> 
+  left_join(glen_annual, by = "water_year")
+
+#Check this, this is what needs fixing
+nrow(lees_glen) == nrow(lees_annual)
 sum(is.na(lees_glen$glenwood_flow)) == 0
 
 dominant_season <- seasonal_summary |>
@@ -749,10 +753,10 @@ aug <- augment(mod, data = lees_glenwood_dominant_season)
 :::
 
 ```{r}
-ggplot(aug, aes(x = .fitted, y = log_lees, color = season)) +
+ggplot(aug, aes(x = Flow.x, y = Flow.y, color = season)) +
   geom_point() +
   geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
-  labs(title = "",
+  labs(title = "Predicted versus Actual Values for Lees Ferry",
        x = "Predicted Flow",
        y = "Actual Flow",
        color = "Season")
@@ -761,12 +765,18 @@ ggplot(aug, aes(x = .fitted, y = log_lees, color = season)) +
 **c.** Plot a **histogram of the residuals** with a vertical dashed line at zero.
 
 ```{r}
+ggplot(aug, aes(x = .resid)) +
+  geom_histogram() +
+  geom_vline(xintercept = 0, type = "dashed") +
+  labs(title = "Histogram of Lees Ferry Model Residuals",
+       x = "Residuals",
+       y = "Frequency")
 
 ```
 
 **d.** In 3–4 sentences: (1) identify the outlier water year visible in your scatter plot. Which year is it and why did the model fail to predict it? (2) Do the residuals appear approximately normal, or is there a tail that concerns you? (3) Name two additional predictors that would most improve this model and explain the physical mechanism behind each.
 
-> ...
+> ...My join doesn't work how it should. I need to fix that before I can answer these questions because my plot and histogram do not plot the correct data right now. 
 
 ------------------------------------------------------------------------
 
