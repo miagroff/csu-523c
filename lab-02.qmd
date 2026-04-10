@@ -484,11 +484,6 @@ Federal regulations give U.S. Customs and Border Protection (CBP) authority to o
 
 The American Civil Liberties Union has documented and challenged this policy. Their analysis is [here](https://www.aclu.org/other/constitution-100-mile-border-zone).
 
-```{r}
-#| echo: false
-#| fig-align: center
-knitr::include_graphics('img/03-aclu.jpg')
-```
 
 100 miles ≈ **160 kilometers**. Your distance calculations are already in kilometers.
 
@@ -518,7 +513,7 @@ border_proximity <- cities |>
   filter(drop_units(dist_to_border) < 160) |> 
   summarize(n_cities = n(), zone_pop = sum(population), percent = (zone_pop / total_pop) * 100)
 
-border_proximity_table |> 
+border_proximity |> 
   flextable() |> 
   set_header_labels(
     n_cities = "Number of Cities",
