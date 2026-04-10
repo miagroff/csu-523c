@@ -20,7 +20,6 @@ knitr::opts_chunk$set(
   message    = FALSE,
   warning    = FALSE,
   comment    = "",
-  cache      = FALSE,
   fig.retina = 3
 )
 ```
@@ -668,10 +667,13 @@ This is your fourth join. **Always verify**: the final dataset should have \~44 
 :::
 
 ```{r}
+#This is the right code here use it below too. 
 lees_annual <- annual_summary |> 
   filter(site_no == "09380000") |>
   filter(water_year < 2024) |>
-  rename(lees_flow = total_annual_discharge)
+  group_by(water_year, site_no) |> 
+  summarise(mean_lees_flow = mean(total_annual_discharge)) |>
+  ungroup()
 
 glen_annual <- annual_summary |> 
   filter(site_no == "09085000") |>
