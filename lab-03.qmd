@@ -842,7 +842,9 @@ visualizations and patterns you observe from your tessellation
 comparisons.
 
 ANSWER: 
-  For a dam operations manager seeking to understand geographic clustering I would recommend either the hexagonal or the grid tessellations as the best options. These options have equal areas throughout and thus spatially distribute and show the dam abundance per unit area. The other three tessellation options all rely on artificial boundaries and artificial county derived center points. 
+  For a dam operations manager seeking to understand geographic clustering I would recommend either the hexagonal or the grid tessellations as the best options. These options have equal areas throughout and thus spatially distribute and show the dam abundance per unit area. The other three tessellation options all rely on artificial boundaries and artificial county derived center points. None of these tessellations take into account natural boundaries such as watershed outlines or boundaries that would distinguish one drainage basin from the next. 
+  It is important to understand management units though, such as state boundaries and county boundaries when considering the reasoning behind the decisions or analysis being done. The counties tessellation makes the most sense from a purely management perspective if there is an administrative question about county or state delegated functioning. I believe that each tessellation will be valid to answer different questions that are presented about the data.
+  I believe that the question of hot spot versus jurisdictional boundary relies completely on the question being asked and who is asking it. For the US government any analysis about management would fall on some artificial boundary that has been drawn. On the other hand, if the question is about just the amount of dams per unit area for questions regarding spacing or river infrastructure the hexagonal and grid tessellations will answer questions better.
 
 
 ------------------------------------------------------------------------
@@ -961,7 +963,7 @@ For example:
 #| echo: true
 #| eval: true
 # Find flood control dams in the first 5 records:
-dams2$PURPOSES[1:5]
+dams2$purposes[1:5]
 grepl("F", dams2$purposes[1:5])
 ```
 
@@ -976,7 +978,24 @@ across your **cropped tessellation from Q1.4** (e.g., `hexagon_clipped`
 or `square_clipped`).
 
 ```{r}
+irrigation <- dams2 |> 
+  filter(grepl("Irrigation", purposes)) |> 
+  mutate(id = 1:n())
+  
+hydroelectric <- dams2 |> 
+  filter(grepl("Hydroelectric", purposes))
+  
+navigation <- dams2 |> 
+  filter(grepl("Navigation", purposes))
+  
+recreation <- dams2 |> 
+  filter(grepl("Recreation", purposes))
 
+#Why doesn't this work?
+pip_irrigation <- pip_fun(hex_crop, irrigation, "id")
+pip_hydroelectric <- pip_fun(hex_crop, hydroelectric, "id")
+pip_navigation <- pip_fun(hex_crop, navigation, "id")
+pip_recreation <- pip_fun(hex_crop, recreation, "id")
 ```
 
 ### Step 4.2
@@ -995,7 +1014,10 @@ or `square_clipped`).
     country with the most
 
 ```{r}
-
+plot_pip(pip_irrigation)
+plot_pip(pip_hydroelectric)
+plot_pip(pip_navigation)
+plot_pip(pip_recreation)
 ```
 
 ### Step 4.3
