@@ -227,12 +227,12 @@ valid/simple.
 
 ```{r}
 voronoi <- 
-    st_cast(st_voronoi(counties)) |> 
+    st_cast(st_voronoi(counties_centroid)) |> 
     st_sf() |>
     mutate(id = 1:n()) 
   
 triangles <-
-    st_cast(st_triangulate(counties)) |> 
+    st_cast(st_triangulate(counties_centroid)) |> 
     st_sf() |> 
     mutate( id = 1:n()) 
  
@@ -402,7 +402,7 @@ regional structure. This is part of the Modifiable Areal Unit Problem
 ### Step 1.6
 
 The last step is to plot your tessellations. We don't want to write out
-5 ggplots (or mindlessly copy and paste `r emo::ji("smile")`)
+5 ggplots (or mindlessly copy and paste)
 
 Instead, lets make a function that takes an `sf` object as *arg1* and a
 character string as *arg2* and returns a ggplot object showing *arg1*
@@ -416,11 +416,11 @@ The form of a function is:
 #| echo: true
 #| eval: false
 
-name = function(arg1, arg2) {
+#name = function(arg1, arg2) {
   
-  ... code goes here ...
+#  ... code goes here ...
   
-}
+#}
 ```
 
 ------------------------------------------------------------------------
@@ -457,7 +457,7 @@ tess_plot = function(data, title){
     theme(plot.title = element_text(face = "bold", color = "navy", hjust = .5),
           plot.caption = element_text(hjust = .5, color = "navy")) +
     labs(title = title, 
-         caption = paste0("Map of the US with ", nrow(data), " tile tesselation."))
+         caption = paste0("Map of the US with a ", nrow(data), " tile tesselation."))
     }
 
 ```
@@ -547,7 +547,7 @@ single `data.frame`
 For example, if your function is called `sum_tess`, the following would
 bind your summaries of the triangulation and voroni object.
 
-```{r, eval = FALSE}
+```{r}
 summary_df_tess <- bind_rows(
 summarize_tess(voronoi_crop, "Voronoi"),
 summarize_tess(triangles_crop, "Triangles"),
@@ -766,7 +766,7 @@ plot_pip <- function(data, title){
     geom_sf(data = data, aes(fill = (n))) + 
     scale_fill_viridis_c() + 
     theme_void() + 
-    theme(plot.title = element_text(face = "bold", color = "navy", hjust = .5, size = 20),
+    theme(plot.title = element_text(face = "bold", color = "navy", hjust = .5, size = 16),
           plot.caption = element_text(face = "italic", color = "navy", hjust = .5, size = 10),
           legend.position = "right") +
     labs(title = title,
@@ -780,11 +780,11 @@ Apply your plotting function to each of the 5 tessellated surfaces with
 Point-in-Polygon counts:
 
 ```{r}
-plot_pip(voronoi_pip, "Voronoi Tesselation")
-plot_pip(triangles_pip, "Triangles Tesselation")
-plot_pip(hex_pip, "Hexagonal Tesselation")
-plot_pip(grid_pip, "Counties Tesselation")
-plot_pip(counties_pip, "Counties Tesselation")
+voronoi_dams <- plot_pip(voronoi_pip, "Voronoi Tessellation")
+triangles_dams <- plot_pip(triangles_pip, "Triangles Tessellation")
+hex_dams <- plot_pip(hex_pip, "Hexagonal Tessellation")
+grid_dams <- plot_pip(grid_pip, "Grid Tessellation")
+counties_dams <- plot_pip(counties_pip, "Counties Tessellation")
 ```
 
 ### Step 3.6
@@ -799,6 +799,12 @@ showing dam clustering under each of the five tessellations. Use
 `patchwork` or `cowplot` to arrange the 5 plots you created in Step 3.5
 for direct visual comparison.
 
+```{r, echo = FALSE}
+library(patchwork) 
+
+combined_plot <- (voronoi_dams + triangles_dams + hex_dams) / (grid_dams + counties_dams + plot_spacer())
+```
+
 **b.** Identify **2–3 geographic regions** where tessellation choice
 produces substantially *different* patterns (e.g., one method shows a
 clear hotspot while another shows diffuse distribution). For each
@@ -806,6 +812,16 @@ region, describe the pattern difference and explain *why* the
 tessellation geometry creates divergent results. Reference the
 characteristics from your Q2 summary (number of tiles, mean area,
 standard deviation).
+
+ANSWER: 
+  Tessellation choice produces substantially different patterns
+between all five maps. The most prominent differences occur are in the
+hexagonal and grid tessellations there is a hotspot, with largest values
+in the center of the US. The range of values also jumps to around
+500-600 for these higher dam areas. In the counties and triangles
+tessellations this hotspot doesn't occur as bright because they have
+smaller area units near the central location. The triangles tessellation
+happens to have a bright, high quantity area in Florida.
 
 **c.** **Which single tessellation would you recommend to a dam
 operations manager seeking to understand geographic clustering?**
@@ -825,9 +841,9 @@ Your answer should be **3–4 paragraphs** and grounded in the actual
 visualizations and patterns you observe from your tessellation
 comparisons.
 
-```{r}
+ANSWER: 
+  For a dam operations manager seeking to understand geographic clustering I would recommend either the hexagonal or the grid tessellations as the best options. These options have equal areas throughout and thus spatially distribute and show the dam abundance per unit area. The other three tessellation options all rely on artificial boundaries and artificial county derived center points. 
 
-```
 
 ------------------------------------------------------------------------
 
@@ -881,7 +897,7 @@ knitr::kable(nid_classifier,
     of dam purposes:
 
 ```{r, echo = TRUE, eval = TRUE}
-unique(dams2$PURPOSES) %>% length()
+unique(dams2$purposes) %>% length()
 ```
 
 -   By storing dam codes as a concatenated string, there is no easy way
@@ -900,7 +916,7 @@ serve:
 #| echo: false
 #| eval: false
 # create a vector of all characters in your purpose and unlist 
-dam_freq <- strsplit(dams2$PURPOSES, split = "") %>%
+dam_freq <- strsplit(dams2$purposes, split = "") %>%
   unlist() %>% 
   table() %>% 
   as.data.frame() %>% 
@@ -946,7 +962,7 @@ For example:
 #| eval: true
 # Find flood control dams in the first 5 records:
 dams2$PURPOSES[1:5]
-grepl("F", dams2$PURPOSES[1:5])
+grepl("F", dams2$purposes[1:5])
 ```
 
 ------------------------------------------------------------------------
