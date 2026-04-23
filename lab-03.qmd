@@ -979,8 +979,7 @@ or `square_clipped`).
 
 ```{r}
 irrigation <- dams2 |> 
-  filter(grepl("Irrigation", purposes)) |> 
-  mutate(id = 1:n())
+  filter(grepl("Irrigation", purposes))
   
 hydroelectric <- dams2 |> 
   filter(grepl("Hydroelectric", purposes))
@@ -991,11 +990,11 @@ navigation <- dams2 |>
 recreation <- dams2 |> 
   filter(grepl("Recreation", purposes))
 
-#Why doesn't this work?
-pip_irrigation <- pip_fun(hex_crop, irrigation, "id")
-pip_hydroelectric <- pip_fun(hex_crop, hydroelectric, "id")
-pip_navigation <- pip_fun(hex_crop, navigation, "id")
-pip_recreation <- pip_fun(hex_crop, recreation, "id")
+
+pip_irrigation <- pip_fun(irrigation, hex_crop, "id")
+pip_hydroelectric <- pip_fun(hydroelectric,hex_crop, "id")
+pip_navigation <- pip_fun(navigation, hex_crop, "id")
+pip_recreation <- pip_fun(recreation, hex_crop, "id")
 ```
 
 ### Step 4.2
@@ -1014,10 +1013,10 @@ pip_recreation <- pip_fun(hex_crop, recreation, "id")
     country with the most
 
 ```{r}
-plot_pip(pip_irrigation)
-plot_pip(pip_hydroelectric)
-plot_pip(pip_navigation)
-plot_pip(pip_recreation)
+plot_pip(pip_irrigation, "Irrigation Dams") + gghighlight(n > (mean(n) + sd(n)))
+plot_pip(pip_hydroelectric, "Hydroelectric Dams") + gghighlight(n > (mean(n) + sd(n)))
+plot_pip(pip_navigation, "Navigation Dams") + gghighlight(n > (mean(n) + sd(n)))
+plot_pip(pip_recreation, "Recreation Dams") + gghighlight(n > (mean(n) + sd(n)))
 ```
 
 ### Step 4.3
@@ -1027,10 +1026,7 @@ sense? How might the tessellation you chose impact your findings? How
 does the distribution of dams coincide with other geographic factors
 such as river systems, climate, ect?
 
-**Optional: Connect to Q6** — For purposes you chose in Q4, hypothesize
-in 1–2 sentences: *"Will \[irrigation/hydroelectric\] dams show the same
-LISA hotspots as all dams in Q6, or different patterns? Why?"* After
-completing Q6, revisit this hypothesis.
+ANSWER: Irrigation dams are generally spread out in the Southwest and central plains regions. Hydroelectric dams are in the North East and in the mountains region of California. Navigation dams are dispersed throughout the East and along the Columbia River, recreational dams are found in the Southeast. This all makes some sense for the area, rivers, and needs of nearby communities. For example Irrigation being most common in the agricultural areas of the US. I am shocked and curious why recreational dams are so dominantly abundant in the Southeast and Eastern areas; I would assume for heat purposes to create lakes for swimming and cooling off during warm weather. 
 
 # Question 5: Spatial Correlation of Dam Attributes — Introduction to Spatial Regression
 
@@ -1080,11 +1076,22 @@ Aggregate as follows:
 
 ```{r}
 #| eval: false
-# Suggested workflow (write your own implementation):
+# Suggested workflow
 # 1) spatial join dams to your cropped tessellation
+aggr_dams <- st_join(hex_crop, dams2)
+
 # 2) group by tile id and summarize n_dams, mean_year_completed, mean_surface_area
 # 3) join summaries back to geometry and preserve zero-dam tiles
 # 4) inspect distributions before mapping
+aggr_dams_calcs <- aggr_dams |> 
+  group_by(id) |> 
+  summarize(
+    n_dams = n(),
+    mean_year_completed = mean(year_completed, na.rm = TRUE),
+    mean_surface_area = mean(surface_area_acres, na.rm = TRUE)
+  ) |> 
+  ungroup() |> 
+  st_as_sf()
 ```
 
 **Produce visualizations** showing spatial patterns:
@@ -1097,7 +1104,23 @@ Do you see geographic clustering of old vs. new dams? Large vs. small
 dams?
 
 ```{r}
+map_1 <- ggplot(aggr_dams_calcs) +
+  geom_sf(aes(fill = mean_year_completed), color = NA) +
+  scale_fill_viridis_c() +
+  theme_void() +
+  labs(title = "Mean Year Completed by Tile") 
 
+map_2 <- ggplot(aggr_dams_calcs) +
+  geom_sf(aes(fill = sqrt(mean_surface_area)), color = NA) +
+  scale_fill_viridis_c() +
+  theme_void() +
+  labs(title = "Sqrt Mean Surface Area by Tile") 
+
+map_3 <- ggplot(aggr_dams_calcs) +
+  geom_sf(aes(fill = n_dams), color = NA) +
+  scale_fill_viridis_c() +
+  theme_void() +
+  labs(title = "Dam Count by Tile") 
 ```
 
 ### Step 5.2
