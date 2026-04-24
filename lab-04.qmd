@@ -125,7 +125,6 @@ knitr::include_graphics("img/lsat8-bands.jpg")
 For this lab, lets just get the first 6 bands. Assets are extracted from a STAC item by the asset name (look at the print statements of the stac_query). Let's define a vector of the assets we want:
 
 ```{r}
-#| eval: false
 # Bands 1-6
 bands <- c('coastal', 'blue', 'green', 'red', 'nir08', 'swir16')
 ```
@@ -135,6 +134,8 @@ Now we can use the `assets_download()` function to download the data. The `outpu
 And that does it! You now have the process needed to get you data.
 
 ```{r}
+#| cache: true
+
 assets_download(items = stac_query,
                 asset_names = bands,
                 output_dir = "data/landsat",
@@ -253,10 +254,21 @@ normalized difference water index   | MNDWI  |  $$ \frac{Green - SWIR1}{Green + 
 - Plot the new stack, using the following palette (`colorRampPalette(c("blue", "white", "red"))(256)`)
 
 ```{r}
+ndvi <- (palo_crop$nir08 - palo_crop$red) / (palo_crop$nir08 + palo_crop$red)
+ndwi <- (palo_crop$green - palo_crop$nir08) / (palo_crop$green + palo_crop$nir08)
+mndwi <- (palo_crop$green - palo_crop$swir16) / (palo_crop$green + palo_crop$swir16)
+wri <- (palo_crop$green + palo_crop$red) / (palo_crop$nir08 + palo_crop$swir16)
+swi <- 1 / sqrt(palo_crop$blue - palo_crop$swir16)
+
+indices_stack <- c(ndvi, ndwi, mndwi, wri, swi) %>%
+setNames(c("ndvi", "ndwi", "mndwi", "wri", "swi"))
+
+plot(indices_stack, col = colorRampPalette(c("blue", "white", "red"))(256))
 
 ```
 
 > Describe the 5 images. How are they simular and where do they deviate?
+ANSWER: SWI only shows places that are without a doubt water, meanwhile the other four show a channel and other features nearby. The two that best highlight the flooded area are MNDWI and WRI. MNDWI probably is the most accurate(or exagerated might be a better term) showing almost everything near the river channel and beyond as flooded.  
 
 ### Step 2: Raster Thresholding
 
@@ -267,6 +279,11 @@ For this, we will use the `app` function and apply a custom formula for each cal
 An example of this, applied to the ndvi raster is shown below:
 
 ```{r}
+ndvi_threshold <- app(ndvi, fun = function(x) ifelse(x < 0, 1, 0))
+ndwi_threshold <- app(ndwi, fun = function(x) ifelse(x > 0, 1, 0))
+mndwi_threshold <- app(mndwi, fun = function(x) ifelse(x > 0, 1, 0))
+wri_threshold <- app(wri, fun = function(x) ifelse(x > 1, 1, 0))
+swi_threshold <- app(swi, fun = function(x) ifelse(x < 5, 1, 0))
 
 ```
 
@@ -280,12 +297,19 @@ For all 5 index rasters do the following apply the appropriate threshold and the
  - Plot the stack so that floods are blue, and background is white.
 
 ```{r}
+threshold_stack <- c(ndvi_threshold, ndwi_threshold, mndwi_threshold, wri_threshold, swi_threshold) %>% 
+  setNames(c("ndvi flood threshold", "ndwi flood threshold", "mndwi flood threshold", "wri flood threshold", "swi flood threshold"))
 
+threshold_stack <- app(threshold_stack, fun = function(x) ifelse(is.na(x), 0, x))
+
+plot(threshold_stack, col = colorRampPalette(c("white", "blue"))(256))
 ```
 
 ### Step 3: 
 
 Describe the differences and similarities between the different maps
+ANSWER:
+All of the threshold flood maps look surprisingly similar. The MNDWI plot shows a few more blue "flood" pixels than the other 4 and the stream channel in NDWI appears to be smallest. Otherwise they all appear quite similar at first glance. 
 
 # Question 4:
 
@@ -300,7 +324,7 @@ For this lab we will use a simple k-means algorithm to group raster cells with s
 Anytime we want to be able to produce a consistent/reproducible result from a random process in R we need to set a seed. Do so using `set.seed`
 
 ```{r}
-
+set.seed(541)
 ```
 
 ### Step 2:
@@ -311,37 +335,52 @@ Anytime we want to be able to produce a consistent/reproducible result from a ra
 > What do the diminsions of the extracted values tell you about how the data was extracted?
 
 ```{r}
-
+raster_values <- values(palo_crop)
+dim(palo_crop)
 ```
 
   - Remove NA values from your extracted data with  `na.omit` for safety
   
 ```{r}
-
+raster_values <- na.omit(raster_values)
 ```
 
 ### Step 3:
 
   - Use the kmeans clustering algorithm from the `stats` package to cluster the extracted raster data to a specified number of clusters `k` (centers). Start with 12.
   
+```{r}
+kmeans_12 <- kmeans(raster_values, centers = 12)
+```
+  
   - Once the `kmeans` algorithm runs, the output will be a list of components. One of these is `cluster` which provides a vector of integers from (1:`k`) indicating the cluster to which each row was allocated.
   
 ### Step 4:
 
-  - Create a new raster object by copying one of the original bands. For example:
+  - Create a new raster object by copying one of the original bands. 
+ 
+  - Set the values of the copied raster to the cluster vector from the output kmeans object. 
   
-```{r, echo = TRUE, eval = FALSE}
-
-```
-  
-  - Set the values of the copied raster to the cluster vector from the output kmeans object. For example:
-
-```{r, echo = TRUE, eval = FALSE}
-
-```
-
 ```{r}
+#Create new raster object
+kmeans_raster <- palo_crop$nir08
+#Set values of copied to the cluster
+values(kmeans_raster) <- kmeans_12$cluster
+plot(kmeans_raster, col = colorRampPalette(c("white", "blue", "red"))(256), main = "K-means Clustering (k=12)")
 
+#Try different numbers of clusters
+#Map them
+kmeans_5 <- kmeans(raster_values, centers = 5)
+values(kmeans_raster) <- kmeans_5$cluster 
+plot(kmeans_raster, col = colorRampPalette(c("white", "blue", "red"))(256), main = "K-means Clustering (k=5)")
+
+kmeans_10 <- kmeans(raster_values, centers = 10)
+values(kmeans_raster) <- kmeans_10$cluster
+plot(kmeans_raster, col = colorRampPalette(c("white", "blue", "red"))(256), main = "K-means Clustering (k=10)")
+
+kmeans_20 <- kmeans(raster_values, centers = 20)
+values(kmeans_raster) <- kmeans_20$cluster
+plot(kmeans_raster, col = colorRampPalette(c("white", "blue", "red"))(256), main = "K-means Clustering (k=20)")
 ```
 
 Try a few different clusters (k) to see how the map changes.
@@ -361,7 +400,10 @@ Great! You now have a categorical raster with categories 1:k. The issue is we do
   - Finally add this to add to your flood raster stack with `c()` and make a new plot!
   
 ```{r}
-
+flood_table <- table(values(threshold_stack$`mndwi flood threshold`), values(kmeans_raster))
+flood_cluster <- which.max(flood_table[2,])
+kmeans_flood <- app(kmeans_raster, fun = function(x) ifelse(x == flood_cluster, 1, 0))
+plot(kmeans_flood, col = colorRampPalette(c("white", "blue"))(256), main = "Flood Classification with K-means")
 ```
 
 # Question 5
@@ -373,6 +415,10 @@ Awesome! You have now created a flood raster using 6 different methods. Our last
  > Print these values
  
 ```{r}
+flooded_stack <- c(threshold_stack, kmeans_flood) |> 
+  setNames(c("ndvi flood threshold", "ndwi flood threshold", "mndwi flood threshold", "wri flood threshold", "swi flood threshold", "kmeans flood threshold"))
+
+flooded_cells <- global(flooded_stack, "sum", na.rm = TRUE)
 
 ```
  
@@ -381,7 +427,11 @@ Awesome! You have now created a flood raster using 6 different methods. Our last
  > Plot your flood map using the blues9 color palette
  
 ```{r}
+flood_certainty <- app(flooded_stack, fun = "sum", na.rm = TRUE)
 
+plot(flood_certainty, 
+     col = blues9, 
+     main = "Flood Uncertainty Classifications")
 ```
  
  - Third once you have a summed raster layer, copy it as a new layer, and set all 0 values to NA. Then map the raster with `mapview`. Zoom and pan around the interactive map noting that a pixel level is displayed in the upper right hand corner.
@@ -389,6 +439,15 @@ Awesome! You have now created a flood raster using 6 different methods. Our last
 > Why are some of the cell values not an even number?
 
 ```{r}
+flood_mask <- flood_certainty
+  
+flood_mask[flood_mask == 0] <- NA
+
+# 3. View it interactively
+mapview(flood_mask, 
+        col.regions = blues9, 
+        na.color = "transparent",
+        layer.name = "Flood Certainty Analysis")
 ```
 
 
