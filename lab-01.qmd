@@ -1,16 +1,9 @@
 ---
 title: 'Lab 1: Data Science Tools'
 subtitle: 'Exploring Streamflow Across the Colorado River Basin'
-
-author:
-  - name: Mia Groff
-    email: mia.groff@colostate.edu
-format:
-  html:
-    code-fold: true
-    toc: true
-    include-before-body: ../slides/header.html
-    include-after-body: ../slides/footer-annotations.html
+author: 
+- name: Mia Groff
+  email: mia.groff@colostate.edu
 ---
 
 ```{r}
@@ -668,14 +661,14 @@ This is your fourth join. **Always verify**: the final dataset should have \~44 
 
 ```{r}
 #This is the right code here use it below too. 
-lees_annual <- annual_summary |> 
+lees_annual <- annual_statistics |> 
   filter(site_no == "09380000") |>
   filter(water_year < 2024) |>
   group_by(water_year, site_no) |> 
   summarise(mean_lees_flow = mean(total_annual_discharge)) |>
   ungroup()
 
-glen_annual <- annual_summary |> 
+glen_annual <- annual_statistics |> 
   filter(site_no == "09085000") |>
     filter(water_year < 2024) |>
     rename(glenwood_flow = total_annual_discharge)
@@ -708,7 +701,7 @@ lees_glenwood_dominant_season <- lees_glenwood_dominant_season |>
 
 
 ```{r}
-mod <- lm(log_lees ~ log_glenwood * season, data = lees_glenwood_dominant_season)
+mod <- lm(log_lees ~ log_glenwood * season, data = annual_summary)
 summary(mod)
 ```
 

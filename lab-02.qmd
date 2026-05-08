@@ -1,11 +1,9 @@
 ---
 title: 'Lab 2: Distances and Projections'
 subtitle: 'The Geometry of Place: Spatial Analysis Skills for Environmental Science'
-author:
-  - name: Mia Groff
-    email: mia.groff@colostate.edu
-format: html
-
+author: 
+- name: Mia Groff
+  email: mia.groff@colostate.edu
 ---
 
 ```{r}

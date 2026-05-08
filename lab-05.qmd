@@ -1,8 +1,9 @@
 ---
 title: 'Lab 5: Machine Learning in Hydrology'
 subtitle: 'Using Tidymodels & CAMELS Data'
-author: Mia Groff
-email: mia.groff@colostate.edu
+author: 
+- name: Mia Groff
+  email: mia.groff@colostate.edu
 ---
 
 ```{r}

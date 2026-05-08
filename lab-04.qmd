@@ -1,14 +1,9 @@
 ---
 title: 'Lab 4: Rasters & Remote Sensing'
 subtitle: 'Palo Iowa Flooding'
-author:
-  - name: Mia Groff
-    email: mia.groff@colostate.edu
-format:
-  html:
-    toc: true
-    include-before-body: ../slides/header.html
-    include-after-body: ../slides/footer-annotations.html
+author: 
+- name: Mia Groff
+  email: mia.groff@colostate.edu
 ---
 
 ```{r, echo = FALSE, eval = TRUE}
