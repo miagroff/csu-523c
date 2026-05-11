@@ -6,16 +6,6 @@ author:
   email: mia.groff@colostate.edu
 ---
 
-```{r}
-#| include: false
-knitr::opts_chunk$set(
-  fig.width  = 8,
-  message    = FALSE,
-  warning    = FALSE,
-  comment    = "",
-  fig.retina = 3
-)
-```
 
 ```{r}
 #| echo: false
@@ -75,8 +65,6 @@ should:
 ### Libraries
 
 ```{r}
-#| echo: false
-#| eval: true
 #| message: false
 #| warning: false
 
