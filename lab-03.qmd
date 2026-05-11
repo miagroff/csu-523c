@@ -837,9 +837,6 @@ These are shown below for convenience (built using knitr on a data.frame
 called `nid_classifier`):
 
 ```{r}
-#| echo: false
-#| eval: true
-
 nid_classifier = data.frame(matrix(c('I' , 'Irrigation',
 'H' , 'Hydroelectric',
 'C' , 'Flood Control',
@@ -1121,7 +1118,6 @@ exist.
 :::
 
 ```{r}
-#| eval: false
 # Suggested workflow (write your own implementation):
 # 1) build vectors for count, age, and size attributes by tile
 # 2) handle NAs explicitly before matrix multiplication
@@ -1133,7 +1129,6 @@ exist.
 **Summarize in a table**:
 
 ```{r}
-#| eval: false
 # Create a compact summary table with:
 # - attribute name
 # - correlation with spatial lag
@@ -1171,8 +1166,8 @@ Q6.
 spatial lag on the same scale (mean=0, SD=1), making it easy to identify
 quadrants and interpret outliers.
 
-``` r
-scale(x, center=TRUE, scale=TRUE)[, 1]
+```{r}
+#scale(x, center=TRUE, scale=TRUE)[, 1]
 ```
 
 Returns a numeric vector (not a matrix). Use `[, 1]` to extract it, or
@@ -1180,7 +1175,6 @@ use `as.vector()` explicitly.
 :::
 
 ```{r}
-#| eval: false
 # Suggested workflow (write your own implementation):
 # 1) standardize the selected attribute and its spatial lag
 # 2) assign HH / LL / HL / LH quadrants by sign of (z, lag_z)
@@ -1337,7 +1331,8 @@ cropped geometry.
 ::: callout-tip
 ## Cropping Tessellations Correctly
 
-```         
+```{r, eval = FALSE, echo = TRUE}
+
 # Recommended tessellation (e.g., hexagon_grid)
 hex_cropped <- st_filter(hexagon_grid, usa_boundary)
 
@@ -1387,8 +1382,7 @@ normalization).
 
 After computing the neighbor matrix, verify it's valid:
 
-```{r}
-#| eval: false
+```{r, eval = FALSE, echo = TRUE}
 # Check 1: Is the matrix symmetric? (for undirected adjacency)
 all(neighbor_matrix == t(neighbor_matrix))
 
