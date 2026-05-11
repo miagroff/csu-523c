@@ -904,8 +904,6 @@ double/triple/quadruple counting dams bases on how many purposes they
 serve:
 
 ```{r}
-#| echo: false
-#| eval: false
 # create a vector of all characters in your purpose and unlist 
 dam_freq <- strsplit(dams2$purposes, split = "") %>%
   unlist() %>% 
@@ -919,9 +917,6 @@ dam_freq <- strsplit(dams2$purposes, split = "") %>%
 The result of this would indicate:
 
 ```{r}
-#| echo: false
-#| eval: false
-
 ggplot() + 
   geom_col(data = dam_freq, aes(x = reorder(lab, -count), y = count, fill = purpose), alpha = .8) + 
   labs(x = "", y = "# Dams", title = "Number of Dams serving each purpose")  +
@@ -1064,7 +1059,6 @@ key dam attributes within each tile. The NID dataset typically includes:
 Aggregate as follows:
 
 ```{r}
-#| eval: false
 # Suggested workflow
 # 1) spatial join dams to your cropped tessellation
 aggr_dams <- st_join(hex_crop, dams2)
