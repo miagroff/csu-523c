@@ -868,9 +868,6 @@ nid_classifier = data.frame(matrix(c('I' , 'Irrigation',
 ```
 
 ```{r}
-#| echo: false
-#| eval: true
-
 knitr::kable(nid_classifier,              
         caption = "NID 2019: Dam Purposes",
         format.args = list(big.mark = ",")) %>% 
@@ -887,7 +884,7 @@ knitr::kable(nid_classifier,
 -   A standard summary indicates there are over 400 unique combinations
     of dam purposes:
 
-```{r, echo = TRUE, eval = TRUE}
+```{r}
 unique(dams2$purposes) %>% length()
 ```
 
@@ -944,8 +941,6 @@ ggplot() +
 For example:
 
 ```{r}
-#| echo: true
-#| eval: true
 # Find flood control dams in the first 5 records:
 dams2$purposes[1:5]
 grepl("F", dams2$purposes[1:5])
